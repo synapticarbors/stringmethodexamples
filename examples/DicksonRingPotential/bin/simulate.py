@@ -1,3 +1,7 @@
+import sys
+if not any(p in sys.path for p in ['', '.']):
+    sys.path.insert(0, '')
+
 import numpy as np
 import cIntegratorSimple
 import ForceFields
@@ -5,15 +9,20 @@ import ForceFields
 from utils import update_rate_stats
 
 import logging
-import os,time
+import os
+import time
 import argparse
+
+coord_dtype = np.float32
+
 
 def genrandint():
     'Generates a random integer between 0 and (2^32)-1'
     x = 0
     for i in range(4):
-        x = (x << 8)+ord(os.urandom(1))
+        x = (x << 8) + ord(os.urandom(1))
     return x
+
 
 def run(sid,beta,NUM_BLOCKS,STEPS_PER_BLOCK,BLOCKS_PER_DUMP):
 
@@ -26,23 +35,20 @@ def run(sid,beta,NUM_BLOCKS,STEPS_PER_BLOCK,BLOCKS_PER_DUMP):
     logging.info('BLOCKS_PER_DUMP: {}'.format(BLOCKS_PER_DUMP))
 
     ff = ForceFields.Dickson2dRingForce()
-    
+
     MASS = 1.0
     XI = 1.5
-    BETA = beta 
+    BETA = beta
     NDIMS = 2
     DT = 0.005
     ISPERIODIC = np.array([0,0],dtype=np.int)
-    BOXSIZE = np.array([1.0E8,1.0E8])
+    BOXSIZE = np.array([1.0E8,1.0E8], dtype=coord_dtype)
 
     print('Instantiating Integrator')
     integrator = cIntegratorSimple.SimpleIntegrator(ff,MASS,XI,BETA,DT,NDIMS,ISPERIODIC,BOXSIZE,genrandint())
 
-    # Allocate numpy storage for temp storage of positions
-    ctemp = np.zeros((BLOCKS_PER_DUMP,2))    
-
     # Initial coords
-    x = np.array([-3.0,0.0])
+    x = np.array([-3.0,0.0], dtype=coord_dtype)
     last_state = 0
 
     totblocks = NUM_BLOCKS//BLOCKS_PER_DUMP
@@ -52,14 +58,13 @@ def run(sid,beta,NUM_BLOCKS,STEPS_PER_BLOCK,BLOCKS_PER_DUMP):
     print('Starting Simulation')
     for dk in xrange(totblocks):
         t1 = time.time()
-        for k in xrange(BLOCKS_PER_DUMP):
-            integrator.step(x,STEPS_PER_BLOCK)
-            ctemp[k,:] = x
+        ctemp = integrator.step_save(x,BLOCKS_PER_DUMP*STEPS_PER_BLOCK,STEPS_PER_BLOCK)
+        x = ctemp[-1,:]
 
         # Collect transition data
         last_state, trans_to_0, trans_to_1, time_in_0, time_in_1 = update_rate_stats(ctemp,last_state)
         rate_stats[dk,:] = [trans_to_0, trans_to_1, time_in_0, time_in_1]
-    
+
         # bin data
         theta = np.arctan2(ctemp[:,1],ctemp[:,0])/np.pi
         h,edges = np.histogram(theta,range=(-1.0,1.0),bins=100)
@@ -78,7 +83,7 @@ if __name__ == '__main__':
     parser.add_argument('--nblocks',dest='nblocks',action='store',type=int)
     parser.add_argument('--steps',dest='steps',action='store',type=int)
     parser.add_argument('--dsize',dest='dsize',action='store',type=int)
-     
+
     args = parser.parse_args()
-    
+
     run(args.sid, args.beta, args.nblocks, args.steps, args.dsize)

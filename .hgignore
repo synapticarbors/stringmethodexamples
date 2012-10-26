@@ -1,0 +1,20 @@
+syntax: glob
+.project
+.pydevproject
+*.pyc
+*.pyo
+*~
+*.swp
+*.swo
+.DS_Store
+
+*.so
+*.h5
+*.eps
+*.log
+
+syntax: regexp
+\.[0-9]+$
+
+build/
+analysis_old/
