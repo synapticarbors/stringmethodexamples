@@ -40,7 +40,7 @@ def update_rate_stats(np.ndarray[DTYPE_t, ndim=2] coords, unsigned int last_stat
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def calc_wemd_rate(np.ndarray[DTYPE_t, ndim=3] pcoords, np.ndarray[DTYPE_t, ndim=1] weight):
+def calc_wemd_rate(np.ndarray[DTYPE_t, ndim=3] pcoords, np.ndarray[np.float64_t, ndim=1] weight):
     cdef unsigned int k
     cdef double flux_to_A, flux_to_B, wA, wB
     cdef double start_state, end_state, w, tol

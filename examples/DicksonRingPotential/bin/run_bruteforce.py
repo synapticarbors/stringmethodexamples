@@ -60,8 +60,8 @@ if __name__ == '__main__':
 
     inputs = []
 
-    for k in xrange(args.start_sim, args.start_sim + args.nsims):
-        for beta in [1.0, 1.5, 2.0, 2.5]:
+    for beta in [1.0, 1.5, 2.0, 2.5]:
+        for k in xrange(args.start_sim, args.start_sim + args.nsims):
             dict_in = {}
             dict_in['basedir'] = basedir
             dict_in['rundir'] = os.path.join(basedir, 'bruteforce_{}'.format(beta))

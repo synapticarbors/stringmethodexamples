@@ -1,9 +1,12 @@
 all: shared examples
 
-examples: check-env DicksonRingPotential
+examples: check-env DicksonRingPotential DicksonPeriodicPotential
 
 shared:
 	cd shared/pylangevin-integrator && python setup.py build_ext --inplace
+
+DicksonPeriodicPotential:
+	$(MAKE) -C examples/DicksonPeriodicPotential
 
 DicksonRingPotential:
 	$(MAKE) -C examples/DicksonRingPotential

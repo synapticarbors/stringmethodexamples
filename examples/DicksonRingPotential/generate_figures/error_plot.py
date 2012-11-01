@@ -4,6 +4,7 @@ import yaml
 import bottleneck as bn
 
 import matplotlib as mpl
+mpl.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 from glob import glob
@@ -22,12 +23,13 @@ mpl.rcParams['xtick.labelsize'] = 10.
 mpl.rcParams['ytick.labelsize'] = 10.
 
 legfont = fm.FontProperties(size=10)
-fsize = (3.375,6.0)
+fsize = (3.375, 6.0)
 
-sims = ['wemd_1.5','wemd_2.5']
+sims = ['we_1.5', 'we_2.5']
 logfunc = np.log10
 
-def estimate_rate(cdata,basedir,beta):
+
+def estimate_rate(cdata, basedir, beta):
     # Estimate the rate at a given temperature beta supposing and Arrhenius dependence
     # using all other brute force data
 
@@ -39,7 +41,7 @@ def estimate_rate(cdata,basedir,beta):
     for bi,bfd in enumerate(bf_data_dirs):
         temps[bi] = float(bfd[-3:])
         rates[bi,:] = calc_target_rate(cdata,basedir,temps[bi])
-    
+
     rates = np.mean(rates,axis=1)
 
     # Linear fit data to desired temp
@@ -47,11 +49,11 @@ def estimate_rate(cdata,basedir,beta):
     p = np.poly1d(z)
 
     target_rate = 10.0**p(beta)
-    
+
     return np.array([target_rate, target_rate]), np.zeros((2,))
 
 def calc_target_rate(cdata,basedir,beta=None):
-    
+
     if beta is None:
         beta = cdata['beta']
 
@@ -136,22 +138,21 @@ def calc_we(cdata,basedir,log_target_rate):
     last_n = cdata['analysis']['last_n']
 
     we_nframes = 0
-    
-    we_data_files = glob(os.path.join(we_dir,'sim_*_data.h5'))
+
+    we_data_files = glob(os.path.join(we_dir,'*/rate.h5'))
 
     for fname in we_data_files:
         f = h5py.File(fname,'r')
-        data_grp = f['rates']
-        we_nframes = max(we_nframes,data_grp.attrs['last_completed_iter']-2)
+        we_nframes = max(we_nframes,f.attrs['last_completed_iter']-2)
         f.close() 
 
     we_err = np.empty((len(we_data_files),2,we_nframes))
     we_err.fill(np.nan)
 
     for k,fname in enumerate(we_data_files):
-        print 'wemd: {}'.format(fname)
+        print 'we: {}'.format(fname)
         f = h5py.File(fname,'r')
-        s = f['rates']['data'][:]
+        s = f['data'][:]
         dget = min(we_nframes,s.shape[0])
         s = s[:dget,:]
 
@@ -167,7 +168,7 @@ def calc_we(cdata,basedir,log_target_rate):
         rABm = (1.0*sm[1]) / (we_dt*sm[2])
         rBAm = (1.0*sm[0]) / (we_dt*sm[3])
 
-        print 'wemd_{} -- kAB: {}, kBA: {}'.format(k,rABm,rBAm)
+        print 'we_{} -- kAB: {}, kBA: {}'.format(k,rABm,rBAm)
 
         we_err[k,0,:rAB.shape[0]] = logfunc(rAB) - log_target_rate[0]
         we_err[k,1,:rBA.shape[0]] = logfunc(rBA) - log_target_rate[1]
@@ -198,7 +199,7 @@ if __name__ == '__main__':
     for si,sname in enumerate(sims):
         ax[sname] = fig.add_subplot(nsubplots,1,si+1)
         
-        config_file = os.path.join(basedir,'{}_run_config.yaml'.format(sname))
+        config_file = os.path.join(basedir,'configs/{}_run_config.yaml'.format(sname))
         with open(config_file,'r') as f:
             config_data = [grp for grp in yaml.load_all(f)]
             config_data[:] = [grp for grp in config_data if grp['name'] in sims]

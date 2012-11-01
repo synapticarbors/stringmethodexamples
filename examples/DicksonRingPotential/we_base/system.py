@@ -97,7 +97,6 @@ class System(WESTSystem):
 
     def __init__(self):
         super(System, self).__init__()
-        self.curr_region_set = None
 
     def initialize(self):
         runtime_config = west.rc.config

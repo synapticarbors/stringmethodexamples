@@ -58,11 +58,8 @@ for iiter in xrange(start_iter, n_iters):
         crd = iter_group['pcoord'][:]
 
         assert weight.shape[0] == crd.shape[0]
-        print 'A'
         flux_to_A, flux_to_B, wA, wB = calc_wemd_rate(crd, weight)
-        print 'B'
         data_ds[iiter-2,:] = np.array([flux_to_A, flux_to_B, wA, wB])
-        print 'C'
         h5out.attrs['last_completed_iter'] = iiter
 
     except:

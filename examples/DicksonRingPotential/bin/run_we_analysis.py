@@ -20,14 +20,14 @@ def run_job(kwargs):
     print kwargs['config_data']['name']
 
     if kwargs['script'] != 'all':
-        script = os.path.join(basedir,'analysis',kwargs['script'])
+        script = os.path.join(basedir, 'analysis', kwargs['script'])
         h5out_file = os.path.join(grp_root, 'analysis', kwargs['sim_index'], script.split('_')[-1] + '.h5')
         os.system('cd {} && $WEST_ROOT/bin/west {}.py -r {} -o {}'.format(sim_root, script, cfg_file, h5out_file))
     else:
         print 'Running all analysis scripts'
         for s in scripts:
             if s != 'all':
-                sp = os.path.join(basedir,'analysis',s)
+                sp = os.path.join(basedir, 'analysis', s)
                 h5out_file = os.path.join(grp_root, 'analysis', kwargs['sim_index'], sp.split('_')[-1] + '.h5')
                 os.system('cd {} && $WEST_ROOT/bin/west {}.py -r {} -o {}'.format(sim_root, sp, cfg_file, h5out_file))
 
@@ -39,7 +39,6 @@ if __name__ == '__main__':
     parser.add_argument('-n', dest='name', nargs='*', help='simulation name to run; by default run all')
     parser.add_argument('-w', dest='nworkers', type=int, default=multiprocessing.cpu_count(), help='number of cores to use')
     parser.add_argument('-s', dest='script', required=True, choices=scripts, help='analysis script to run')
-    parser.add_argument('--no-run', dest
     args = parser.parse_args()
 
     # Setup worker pool

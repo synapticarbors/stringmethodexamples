@@ -12,6 +12,7 @@ syntax: glob
 *.h5
 *.eps
 *.log
+*.sh
 
 syntax: regexp
 \.[0-9]+$
