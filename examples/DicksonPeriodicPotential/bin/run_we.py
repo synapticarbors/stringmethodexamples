@@ -10,29 +10,37 @@ script_template = """
 
 cd {rundir}
 
-export WEMD_SIM_ROOT={rundir}
-source env.sh
+export WEST_SIM_ROOT={rundir}
 
-if [ ! -f wemd.h5 ];
+{env_variables}
+
+echo west_pythonpath: $WEST_PYTHONPATH
+echo west_sim_root: $WEST_SIM_ROOT
+echo west_root: $WEST_ROOT
+
+BSTATE_ARGS="--bstate initA,1.0"
+
+if [ ! -f west.h5 ];
 then
-    $WEMD_ROOT/bin/w_init -r wemd_{sim_name}.cfg > sim_{sim_name}_init.log &
+    $WEST_ROOT/bin/w_init -r we_{sim_name}.cfg $BSTATE_ARGS > sim_{sim_name}_init.log &
     wait
 fi
 
-$WEMD_ROOT/bin/w_run -r wemd_{sim_name}.cfg --verbose --work-manager=serial > sim_{sim_name}.log &
+$WEST_ROOT/bin/w_run -r we_{sim_name}.cfg --verbose > sim_{sim_name}.log &
 wait
 """
 
-def build_wemd_cfg(config_data, protocol):
+
+def build_west_cfg(config_data, protocol):
     wd = {k:config_data[k] for k in  ['alpha','nbins','target_count','tau']}
     wd['max_iterations'] = protocol['max_iterations']
-    
+
     # string method parameters
     for p in protocol['stringmethod']:
         wd['sm_' + p] = protocol['stringmethod'][p]
 
     return wd
-    
+
 
 def run_job(kwargs):
 
@@ -43,7 +51,7 @@ def run_job(kwargs):
 
     # Setup run directory if it does not already exist
     if not os.path.exists(rundir):
-        os.system('cp -RP {} {}'.format('wemd_base',rundir))
+        os.system('cp -RP {} {}'.format('we_base',rundir))
 
     # Get protocols to run
     protocols = config_data['protocols']
@@ -53,19 +61,23 @@ def run_job(kwargs):
 
     for p in protocols:
         # Setup external run script
+        env_file = os.path.join(rundir, 'env.sh')
+        with open(env_file, 'r') as f:
+            ev = f.read()
+
         sname = os.path.join(rundir,'run_{}_{}.sh'.format(sim_id,p['name']))
-        script = script_template.format(rundir=rundir, sim_name=p['name'])
-        
+        script = script_template.format(rundir=rundir, sim_name=p['name'], env_variables=ev)
+
         with open(sname,'w') as f:
             for line in script:
                 f.write(line)
 
-        # Setup wemd config script
-        wcfg_dict = build_wemd_cfg(config_data,p)
+        # Setup west config script
+        wcfg_dict = build_west_cfg(config_data,p)
         print wcfg_dict
-        with open('wemd_base/wemd_base.cfg','r') as fin, open(os.path.join(rundir,'wemd_{}.cfg'.format(p['name'])),'w') as fout:
-            wemd_cfg_template = fin.read()
-            wcfg = wemd_cfg_template.format(**wcfg_dict)
+        with open('we_base/we_base.cfg','r') as fin, open(os.path.join(rundir,'we_{}.cfg'.format(p['name'])),'w') as fout:
+            we_cfg_template = fin.read()
+            wcfg = we_cfg_template.format(**wcfg_dict)
 
             for line in wcfg:
                 fout.write(line)
@@ -77,15 +89,15 @@ def run_job(kwargs):
 
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser(description='WEMD run script')
+    parser = argparse.ArgumentParser(description='WEST run script')
     parser.add_argument('-s', dest='nsims', type=int, default=10, help='number of simulations to run')
     parser.add_argument('-c', dest='config_file', required=True, nargs='+',help='yaml config file name')
     parser.add_argument('-n', dest='name', nargs='*', required=True,help='simulation name to run')
     parser.add_argument('-p', dest='protocols', nargs='*', help='protocols to run; by default run all')
     parser.add_argument('-w', dest='nworkers', type=int, default=multiprocessing.cpu_count(), 
-                                help='number of cores to use')
+                        help='number of cores to use')
     parser.add_argument('--sid_offset', dest='sid_offset', type=int, default=0,
-                                help='offset for numbering simulations')
+                        help='offset for numbering simulations')
 
     args = parser.parse_args()
 
@@ -107,7 +119,7 @@ if __name__ == '__main__':
 
     if args.name is not None:
         config_data[:] = [grp for grp in config_data if grp['name'] in args.name]
-    
+
     if len(config_data) == 0:
         print('ERROR: No simulations to run')
         sys.exit(1)

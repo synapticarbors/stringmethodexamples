@@ -6,7 +6,9 @@ all: clean setup
 setup: 
 	@if [ -z "$${WEST_ROOT}" ]; then echo "The env variable WEST_ROOT must be specified"  && exit 1; fi
 	ln -s $(PYLANG_TARGET)/ForceFields.so we_base/ForceFields.so
+	ln -s $(PYLANG_TARGET)/ForceFields.so bruteforce_base/ForceFields.so
 	ln -s $(PYLANG_TARGET)/cIntegratorSimple.so we_base/cIntegratorSimple.so
+	ln -s $(PYLANG_TARGET)/cIntegratorSimple.so bruteforce_base/cIntegratorSimple.so
 	touch we_base/env.sh
 	echo 'export WEST_ROOT=$(W_ROOT)' >> we_base/env.sh
 	echo 'export WEST_PYTHONPATH=$${WEST_ROOT}/src:$${WEST_SIM_ROOT}' >> we_base/env.sh

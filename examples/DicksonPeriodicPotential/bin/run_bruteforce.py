@@ -49,7 +49,7 @@ def run_job(kwargs):
 
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser(description='WEMD run script')
+    parser = argparse.ArgumentParser(description='Bruteforce run script')
     parser.add_argument('-s', dest='nsims', type=int, default=10, help='number of simulations to run')
     parser.add_argument('-c', dest='config_file', required=True, nargs='+',help='yaml config file name')
     parser.add_argument('-n', dest='name', nargs='*', required=True,help='simulation name to run')

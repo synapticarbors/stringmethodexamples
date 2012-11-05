@@ -32,14 +32,14 @@ def run(sid,alpha,NUM_BLOCKS,STEPS_PER_BLOCK,BLOCKS_PER_DUMP):
     BETA = 4.0
     NDIMS = 2
     DT = 0.002
-    ISPERIODIC = np.array([0,1],dtype=np.int)
-    BOXSIZE = np.array([1.0E8,1.0])
+    ISPERIODIC = np.array([0,1], dtype=np.int)
+    BOXSIZE = np.array([1.0E8,1.0], dtype=np.float32)
 
     print('Instantiating Integrator')
     integrator = cIntegratorSimple.SimpleIntegrator(ff,MASS,XI,BETA,DT,NDIMS,ISPERIODIC,BOXSIZE,genrandint())
 
     # Initial coords and velocities
-    x = np.array([0.0,0.5])
+    x = np.array([0.0,0.5], dtype=np.float32)
 
     totblocks = NUM_BLOCKS//BLOCKS_PER_DUMP
 

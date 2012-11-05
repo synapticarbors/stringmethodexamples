@@ -1,9 +1,11 @@
 ---
-name: wemd_rare
+name: we_rare
 alpha: 2.25
 nbins: 50
 target_count: 50
 tau: 10
+propagator_block_size: 2500
+adjust_counts: True
 protocols:
     - name: phase1
       max_iterations: 5000

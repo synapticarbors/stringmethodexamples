@@ -1,20 +1,19 @@
 from __future__ import division, print_function; __metaclass__ = type
 
 import time
-import osos
+import os
 import numpy as np
 import scipy
 
 import west
 from west.propagators import WESTPropagator
 from west import Segment, WESTSystem
-from  west.binning import VoronoiBinMapper
+from west.binning import VoronoiBinMapper
 from westext.stringmethod import DefaultStringMethod
+from westext.stringmethod.fourier_fitting import FourierFit
 
 import cIntegratorSimple
 import ForceFields
-
-from fourier_fitting import FourierFit
 
 import logging
 log = logging.getLogger(__name__)
@@ -33,7 +32,7 @@ def genrandint():
 
 class SimpleLangevinPropagator(WESTPropagator):
     def __init__(self, system=None):
-        super(SimpleLangevinPropagator,self).__init__(system)
+        super(SimpleLangevinPropagator,self).__init__()
 
         # Process configuration file information
         runtime_config = west.rc.config
@@ -53,6 +52,13 @@ class SimpleLangevinPropagator(WESTPropagator):
         BOXSIZE = np.array([1.0E8,1.0], dtype=pcoord_dtype)
 
         self.integrator = cIntegratorSimple.SimpleIntegrator(ff,MASS,XI,BETA,DT,NDIMS,ISPERIODIC,BOXSIZE,genrandint())
+
+    def get_pcoord(self, state):
+        pcoord = None
+        if state.label == 'initA':
+            pcoord = [0.05, 0.5]
+
+        state.pcoord = pcoord
 
     def propagate(self,segments):
 
@@ -74,6 +80,7 @@ class SimpleLangevinPropagator(WESTPropagator):
 
         return segments
 
+
 def dfunc(p,centers):
     isperiodic = np.array([0,1],dtype=np.int)
     boxsize = np.array([1.0e8,1.0])
@@ -86,6 +93,7 @@ def dfunc(p,centers):
 
     pp += centers
     return np.sqrt(np.sum((pp-centers)**2,axis=1))
+
 
 def average_position(self,n_iter):
 
@@ -135,7 +143,7 @@ def average_position(self,n_iter):
     occ_ind = np.nonzero(sum_bin_weight)
     avg_pos[occ_ind] /= sum_bin_weight[occ_ind][:,np.newaxis]
 
-    return avg_pos,sum_bin_weight
+    return avg_pos, sum_bin_weight
 
 
 class System(WESTSystem):
@@ -168,10 +176,6 @@ class System(WESTSystem):
                           'boxsize':np.array([1.0e8,1.0]),
                           'sciflag':True
                          }
-
-        self.region_set = self.new_region_set()
-        
-        self.add_initial_state('init',1.0,1.0,[0.05,0.5])
 
 
 class PeriodicLinkedStringMethod(DefaultStringMethod):

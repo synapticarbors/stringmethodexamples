@@ -1,9 +1,11 @@
 ---
-name: wemd_common
+name: we_common
 alpha: 1.125
 nbins: 20
 target_count: 40
 tau: 10
+propagator_block_size: 800
+adjust_counts: True
 protocols:
     - name: phase1
       max_iterations: 1000
