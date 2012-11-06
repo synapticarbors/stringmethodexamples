@@ -2,63 +2,73 @@ import numpy as np
 import h5py
 import argparse
 import sys
+import os
 
-def run(fin_name, fout_name):
-    fin = h5py.File(fin_name,'r')
-    fout = h5py.File(fout_name,'a')
-    nbins = 100
+import west
 
-    # Get last iteration in input file
-    niters = fin.attrs.get('wemd_current_iteration') - 1
+pcoord_dtype = np.float32
+nbins = 100
 
-    data_grp = fout.require_group('dist')
-    if 'data' in data_grp:
-        dshape = data_grp['data'].shape
-        if dshape[0] < niters:
-            data_grp['data'].resize((niters-2,nbins))
-        
-        data = data_grp['data']
-        start_iter = data_grp.attrs['last_completed_iter']
-    else:
-        data = data_grp.require_dataset('data',(niters-2,nbins),np.float,exact=False,maxshape=(None,nbins))
-        start_iter = 2
-        data_grp.attrs['last_completed_iter'] = 2
-
-    print 'starting iteration: {}'.format(start_iter)
-
-    for iiter in xrange(start_iter,niters):
-        if iiter % 1000 == 0:
-            print 'Processing {} of {}'.format(iiter,niters-1)
-            fout.flush()
-
-        try:
-            iter_grp = fin['iter_{:08d}'.format(iiter)]
-
-            weight = iter_grp['seg_index']['weight']
-            crd = iter_grp['pcoord'][:,-1,1]
-
-            assert weight.shape[0] == crd.shape[0]
-
-            # simulation time spent on iteration
-            h,edges = np.histogram(crd,weights=weight,range=(0.0,1.0),bins=nbins)
-
-            data[iiter-2,:] = h
-            data_grp.attrs['last_completed_iter'] = iiter
-
-        except:
-            print 'Error in processing iteration: {}'.format(iiter)
-            print sys.exc_info()
-            break
-
-    fin.close()
-    fout.close()
+print '-----------------------'
+print os.path.basename(__file__)
+print '-----------------------'
+env = os.environ
+for k in env:
+    if 'WEST' in k:
+        print k, env[k]
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='WEMD distribution analysis script')
-    parser.add_argument('-f', dest='h5in', help='input h5 file')
-    parser.add_argument('-o', dest='h5out', help='name of output file')
+parser = argparse.ArgumentParser('calculate_distribution', description='''\
+        Calculate distribution statistics
+        ''')
 
-    args = parser.parse_args() 
+west.rc.add_args(parser)
+parser.add_argument('-o', dest='h5out', help='name of output file')
 
-    run(args.h5in,args.h5out)
+args = parser.parse_args()
+west.rc.process_args(args)
+
+data_manager = west.rc.get_data_manager()
+data_manager.open_backing(mode='r')
+
+h5out = h5py.File(args.h5out, 'a')
+
+n_iters = data_manager.current_iteration - 1
+iter_prec = data_manager.iter_prec
+
+if 'data' in h5out:
+    data_ds = h5out['data']
+    dshape = data_ds.shape
+    if dshape[0] < n_iters:
+        data_ds.resize((n_iters - 2, nbins))
+
+    start_iter = h5out.attrs['last_completed_iter']
+else:
+    data_ds = h5out.require_dataset('data', (n_iters - 2, nbins), np.float64, exact=False, maxshape=(None, nbins))
+    start_iter = 2
+    h5out.attrs['last_completed_iter'] = 2
+
+for iiter in xrange(start_iter, n_iters):
+    if iiter % 1000 == 0:
+        print 'Processing {} of {}'.format(iiter, n_iters - 1)
+        h5out.flush()
+
+    try:
+        iter_group = data_manager.get_iter_group(iiter)
+        weight = iter_group['seg_index']['weight']
+        crd = iter_group['pcoord'][:,-1,1]
+
+        assert weight.shape[0] == crd.shape[0]
+
+        h, edges = np.histogram(crd, weights=weight, range=(0.0,1.0),bins=nbins)
+
+        data_ds[iiter-2,:] = h
+        h5out.attrs['last_completed_iter'] = iiter
+
+    except:
+        print 'Error in processing iteration: {}'.format(iiter)
+        print sys.exc_info()
+        break
+
+h5out.close()
+data_manager.close_backing()

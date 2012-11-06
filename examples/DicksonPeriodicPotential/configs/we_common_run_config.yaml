@@ -13,4 +13,3 @@ protocols:
     - name: phase2
       max_iterations: 35000
       stringmethod: {do_update: False, windowsize: 50, update_interval: 10, initial_update: 10}
-

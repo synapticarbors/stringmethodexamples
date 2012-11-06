@@ -14,6 +14,7 @@ from westext.stringmethod.fourier_fitting import FourierFit
 
 import cIntegratorSimple
 import ForceFields
+from utils import dfunc as dfunc
 
 import logging
 log = logging.getLogger(__name__)
@@ -81,7 +82,7 @@ class SimpleLangevinPropagator(WESTPropagator):
         return segments
 
 
-def dfunc(p,centers):
+def dfunc_orig(p,centers):
     isperiodic = np.array([0,1],dtype=np.int)
     boxsize = np.array([1.0e8,1.0])
 
@@ -100,44 +101,45 @@ def average_position(self,n_iter):
     isperiodic = np.array([0,1],dtype=np.int)
     boxsize = np.array([1.0e8,1.0])
 
-    ncenters = self.system.region_set.ncenters
+    nbins = self.system.bin_mapper.nbins
     ndim = self.system.pcoord_ndim
 
-    avg_pos = np.zeros((ncenters, ndim), dtype=self.system.pcoord_dtype)
-    sum_bin_weight = np.zeros((ncenters,), dtype=self.system.pcoord_dtype)
+    avg_pos = np.zeros((nbins, ndim), dtype=self.system.pcoord_dtype)
+    sum_bin_weight = np.zeros((nbins,), dtype=self.system.pcoord_dtype)
 
     start_iter = max(n_iter - min(self.windowsize, n_iter), 1)
     stop_iter = n_iter + 1
 
     for n in xrange(start_iter, stop_iter):
-        iter_group = self.data_manager.get_iter_group(n)
-        seg_index = iter_group['seg_index'][...]
+        with self.data_manager.lock:
+            iter_group = self.data_manager.get_iter_group(n)
+            seg_index = iter_group['seg_index'][...]
 
-        pcoords = iter_group['pcoord'][:,-1,:]  # Only read final point
-        bin_indices = self.system.region_set.map_to_all_indices(pcoords)
-        weights = seg_index['weight']
+            pcoords = iter_group['pcoord'][:,-1,:]  # Only read final point
+            bin_indices = self.system.bin_mapper.assign(pcoords)
+            weights = seg_index['weight']
 
-        uniq_indices = np.unique(bin_indices)
+            uniq_indices = np.unique(bin_indices)
 
-        for indx in uniq_indices:
+            for indx in uniq_indices:
 
-            ii = np.where(bin_indices == indx)[0]
-            bpc = pcoords[ii,:].copy()
+                ii = np.where(bin_indices == indx)[0]
+                bpc = pcoords[ii,:].copy()
 
-            # Wrap coordinates into the same image as the current center
-            xref = self.strings.centers[indx,:]
+                # Wrap coordinates into the same image as the current center
+                xref = self.strings.centers[indx,:]
 
-            for k in xrange(ndim):
-                if isperiodic[k] == 1:
-                    xoffset = bpc[:,k] - xref[k]
-                    xoffset -= np.rint(xoffset/boxsize[k])*boxsize[k]
-                    bpc[:,k] = xoffset + xref[k]
+                for k in xrange(ndim):
+                    if isperiodic[k] == 1:
+                        xoffset = bpc[:,k] - xref[k]
+                        xoffset -= np.rint(xoffset/boxsize[k])*boxsize[k]
+                        bpc[:,k] = xoffset + xref[k]
 
-            pcoord_w = bpc * weights[ii][:,np.newaxis]
+                pcoord_w = bpc * weights[ii][:,np.newaxis]
 
-            avg_pos[indx,:] += pcoord_w.sum(axis=0)
+                avg_pos[indx,:] += pcoord_w.sum(axis=0)
 
-        sum_bin_weight += np.bincount(bin_indices.astype(np.int),weights=weights,minlength=ncenters)
+            sum_bin_weight += np.bincount(bin_indices.astype(np.int),weights=weights,minlength=nbins)
 
     # Some bins might have zero samples so exclude to avoid divide by zero
     occ_ind = np.nonzero(sum_bin_weight)

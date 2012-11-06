@@ -2,44 +2,64 @@ import numpy as np
 import h5py
 import argparse
 import sys
+import os
 
-def run(fin_name, fout_name):
-    fin = h5py.File(fin_name,'r')
-    fout = h5py.File(fout_name,'a')
-    # Get last iteration in input file
-    niters = fin.attrs.get('wemd_current_iteration') - 1
+import west
 
-    print 'Getting pcoord data ({} iterations)'.format(niters)
+step = 100
+pcoord_dtype = np.float32
 
-    data_grp = fout.require_group('pcoord')
-    for iiter in xrange(2,niters,500):
-        print 'Processing {} of {}'.format(iiter,niters-1)
-        fout.flush()
-
-        try:
-            iter_grp = fin['iter_{:08d}'.format(iiter)]
-            crd = iter_grp['pcoord'][:,-1,:]
-
-        except:
-            print 'Error in processing iteration: {}'.format(iiter)
-            print sys.exc_info()
-            break
-
-        data_iter_grp = data_grp.require_group('iter_{:08d}'.format(iiter))
-
-        crd_ds = data_iter_grp.require_dataset('pcoord',shape=crd.shape,dtype=np.float64)
-        crd_ds[...] = crd
-
-    fin.close()
-    fout.close()
+print '-----------------------'
+print os.path.basename(__file__)
+print '-----------------------'
+env = os.environ
+for k in env:
+    if 'WEST' in k:
+        print k, env[k]
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Get pcoords for representative snapshots')
-    parser.add_argument('-f', dest='h5in', help='input h5 file')
-    parser.add_argument('-o', dest='h5out', help='name of output file')
+parser = argparse.ArgumentParser('get_pcoords', description='''\
+        Retrieve pcoords from west.h5 file and write them to new file
+        ''')
 
-    args = parser.parse_args() 
+west.rc.add_args(parser)
+parser.add_argument('-o', dest='h5out', help='name of output file')
 
-    run(args.h5in,args.h5out)
+args = parser.parse_args()
+west.rc.process_args(args)
 
+data_manager = west.rc.get_data_manager()
+data_manager.open_backing(mode='r')
+
+h5out = h5py.File(args.h5out, 'w')
+
+n_iters = data_manager.current_iteration - 1
+iter_prec = data_manager.iter_prec
+
+data_group = h5out.require_group('/iterations')
+
+# Get first iteration
+iiter = 2
+iter_group = data_manager.get_iter_group(iiter)
+crd = iter_group['pcoord'][:,-1,:]
+iter_name ='iter_{:0{prec}d}'.format(long(iiter), prec=iter_prec)
+pcoord_ds = data_group.require_dataset(iter_name, shape=crd.shape, dtype=pcoord_dtype)
+pcoord_ds[...] = crd
+
+for iiter in xrange(step, n_iters, step):
+    h5out.flush()
+
+    try:
+        iter_group = data_manager.get_iter_group(iiter)
+        crd = iter_group['pcoord'][:,-1,:]
+    except:
+        print 'Error processing iteration: {}'.format(iiter)
+        print sys.exc_info()
+        break
+
+    iter_name = 'iter_{:0{prec}d}'.format(long(iiter), prec=iter_prec)
+    pcoord_ds = data_group.require_dataset(iter_name, shape=crd.shape, dtype=pcoord_dtype)
+    pcoord_ds[...] = crd
+
+h5out.close()
+data_manager.close_backing()

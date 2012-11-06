@@ -32,7 +32,7 @@ wait
 
 
 def build_west_cfg(config_data, protocol):
-    wd = {k:config_data[k] for k in  ['alpha','nbins','target_count','tau']}
+    wd = {k:config_data[k] for k in  ['alpha','nbins','target_count','tau','propagator_block_size','adjust_counts']}
     wd['max_iterations'] = protocol['max_iterations']
 
     # string method parameters
