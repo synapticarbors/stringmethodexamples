@@ -1,6 +1,7 @@
 import numpy as np
 import h5py
 import matplotlib as mpl
+mpl.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 from glob import glob
@@ -15,12 +16,12 @@ mpl.rcParams['ytick.labelsize'] = 10.
 
 legfont = fm.FontProperties(size=8)
 
-sims = ['common','rare']
-markers = ['o','v']
-bins = np.linspace(0.0,1.0,100)
+sims = ['common', 'rare']
+markers = ['o', 'v']
+bins = np.linspace(0.0, 1.0, 100)
 nsims = 10
 
-fsize = (3.375,3.0)
+fsize = (3.375, 3.0)
 
 
 # Figure setup
@@ -29,10 +30,10 @@ ax = fig.add_subplot(111)
 
 # Brute force
 for sni,sname in enumerate(sims):
-    H = np.zeros((nsims,bins.size))
-    
+    H = np.zeros((nsims, bins.size))
+
     data_files = glob('../bruteforce_{}/rawcounts_*.npy'.format(sname))
-    
+
     for dfi,df in enumerate(data_files[:10]):
         h = np.load(df)
         H[dfi,:] += h.sum(0)
@@ -50,12 +51,12 @@ lastN = 20000
 
 for sni, sname in enumerate(sims):
 
-    data_files = glob('../wemd_{}/analysis/sim_*_data.h5'.format(sname)) 
+    data_files = glob('../we_{}/analysis/*/distribution.h5'.format(sname))
     H = np.zeros((len(data_files),bins.size))
     
     for dfi,df in enumerate(data_files):
         f = h5py.File(df,'r')
-        h = f['dist']['data'][:]
+        h = f['data'][:]
         H[dfi,:] = np.sum(h[-lastN:,:],axis=0)
         H[dfi,:] /= H[dfi,:].sum()
         f.close()
@@ -68,8 +69,3 @@ ax.axis([0,1,1E-9,1])
 fig.set_size_inches(fsize)
 plt.tight_layout()
 plt.savefig('distribution.eps',dpi=600,format='eps',bbox_inches='tight')
-
-
-plt.show()
-
-    

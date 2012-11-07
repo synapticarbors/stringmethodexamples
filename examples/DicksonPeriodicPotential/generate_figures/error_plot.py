@@ -3,12 +3,13 @@ import h5py
 import yaml
 
 import matplotlib as mpl
+mpl.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 from glob import glob
 import os
 
-basedir = '../'
+basedir = '..'
 
 
 # Font settings
@@ -21,15 +22,15 @@ mpl.rcParams['ytick.labelsize'] = 10.
 
 legfont = fm.FontProperties(size=10)
 
-sims = ['common','rare']
+sims = ['common', 'rare']
 
 # Get parameters from yaml files
-with open(os.path.join(basedir,'bruteforce_run_config.yaml'),'r') as f:
+with open(os.path.join(basedir,'configs/bruteforce_run_config.yaml'),'r') as f:
     bf_cfg_data = [grp for grp in yaml.load_all(f)]
 
 we_cfg_data = {}
 for sname in sims:
-    with open(os.path.join(basedir,'wemd_{}_run_config.yaml'.format(sname)),'r') as f:
+    with open(os.path.join(basedir,'configs/we_{}_run_config.yaml'.format(sname)),'r') as f:
         we_cfg_data[sname] = yaml.load(f)
 
 bf_dt = {}
@@ -43,14 +44,13 @@ for sname in sims:
     we_dt[sname] = we_cfg_data[sname]['tau'] * we_cfg_data[sname]['nbins'] * we_cfg_data[sname]['target_count']
 
 
-we_offset = [50,50]
-#T = [1.0E8,2.0E9] # Matches paper plots
+we_offset = [50, 50]
 #T = [20.0*1E8,20.0*1E9] # Numbers used for this study
-T = [1.6E8, 1.0E10]
-ntarget = [1,10]
+T = [1.6E8, 1.0E10] # Values used in the Dickson paper
+ntarget = [1, 10]
 nbins = 100
 
-fsize = (3.375,6.0)
+fsize = (3.375, 6.0)
 
 logfunc = np.log10
 
@@ -75,7 +75,7 @@ for sni,sname in enumerate(sims):
     log_Pt = logfunc(target)
     nframes = tk.shape[0]
     print '{} -- nframes: {} bf_dt: {}'.format(sname, nframes,bf_dt[sname])
-    t = bf_dt[sname] * np.arange(nframes,dtype=np.int64) 
+    t = bf_dt[sname] * np.arange(nframes,dtype=np.int64)
     print np.min(t), np.max(t)
     
     # Brute Force
@@ -96,19 +96,16 @@ for sni,sname in enumerate(sims):
    
     ax[sname].loglog(t,np.mean(err,axis=0),color='black',ls=':',label='CONV')
     maxi = np.array(maxi)
-    print t[maxi]
     maxii = np.ceil(np.mean(maxi))
     ax[sname].loglog([t[maxii]],[np.mean(err,axis=0)[maxii]],marker='o',ms=4,color='black',label='_nolegend_')
-    print 'bf max inf time: %.3e %.3e %.3e' % (np.max(t[maxi]),np.min(t[maxi]), np.mean(t[maxi]))
 
     # WE
-
-    fnames = glob(os.path.join(basedir,'wemd_{}/analysis/sim_*.h5'.format(sname)))
+    fnames = glob(os.path.join(basedir,'we_{}/analysis/*/distribution.h5'.format(sname)))
     data = []
     data_shape = []
     for fn in fnames:
         h5file = h5py.File(fn,'r')
-        d = h5file['dist']['data'][:]
+        d = h5file['data'][:]
         
         data.append(d)
         data_shape.append(list(d.shape))
@@ -120,7 +117,6 @@ for sni,sname in enumerate(sims):
 
     we_nframes = data_shape[0,0]
     werr = np.zeros((10,we_nframes-offset))
-    #T = we_dt[sni] * h.shape[0]
     tt = we_dt[sname]*np.arange(we_nframes-offset) + we_dt[sname]*offset
     maxi = []
 
@@ -159,6 +155,3 @@ fig.set_size_inches(fsize)
 plt.tight_layout()
 plt.savefig('error.eps',dpi=600,format='eps',bbox_inches='tight')
 plt.show()
-
-
-

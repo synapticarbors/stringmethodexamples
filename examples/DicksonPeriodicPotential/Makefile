@@ -13,6 +13,7 @@ setup:
 	ln -s $(PYLANG_TARGET)/cIntegratorSimple.so bruteforce_base/cIntegratorSimple.so
 	ln -s $(SRC_TARGET)/utils.so we_base/utils.so
 	ln -s $(SRC_TARGET)/utils.so analysis/utils.so
+	ln -s $(SRC_TARGET)/utils.so generate_figures/utils.so
 	touch we_base/env.sh
 	echo 'export WEST_ROOT=$(W_ROOT)' >> we_base/env.sh
 	echo 'export WEST_PYTHONPATH=$${WEST_ROOT}/src:$${WEST_SIM_ROOT}' >> we_base/env.sh
@@ -20,7 +21,7 @@ setup:
 	echo 'export WM_WORK_MANAGER=serial' >> we_base/env.sh
 
 clean:
-	rm -f we_base/env.sh we_base/*.so bruteforce_base/*.so analysis/*.so
+	rm -f we_base/env.sh we_base/*.so bruteforce_base/*.so analysis/*.so generate_figures/*.so
 
 .PHONY: all clean setup 
 

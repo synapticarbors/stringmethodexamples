@@ -48,6 +48,7 @@ centers = f['strings'][-1,...]
 ncenters = centers.shape[0] // 2
 f.close()
 
+## Coordinate data
 f = h5py.File(pcoord_h5,'r')
 iters = [x for x in f['iterations'].keys() if 'iter_' in x]
 iiter = max(iters)

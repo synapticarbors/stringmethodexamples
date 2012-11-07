@@ -1,28 +1,18 @@
 import numpy as np
 import h5py
-
 import matplotlib as mpl
+mpl.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from mpl_toolkits.axes_grid1 import ImageGrid
 
 import voronoi
-
-def dfunc(p,centers):
-    isperiodic = np.array([0,1],dtype=np.int)
-    boxsize = np.array([1.0e8,1.0])
-
-    pp = p - centers
-
-    for k in xrange(len(isperiodic)):
-        if isperiodic[k] == 1:
-            pp[:,k] -= np.rint(pp[:,k]/boxsize[k])*boxsize[k]
-
-    pp += centers
-    return np.sqrt(np.sum((pp-centers)**2,axis=1))
+from utils import dfunc as dfunc
 
 
-h5file = '../wemd_common/analysis/sim_5_data.h5'
+simname = 'we_common'
+pcoord_h5 = '../{}/analysis/0/pcoords.h5'.format(simname)
+string_h5 = '../{}/analysis/0/strings.h5'.format(simname)
 
 # Font settings
 ### rcParams are the default parameters for matplotlib
@@ -53,20 +43,21 @@ V *= beta
 V -= np.min(V)
 
 # Get string data
-f = h5py.File(h5file,'r')
+f = h5py.File(string_h5, 'r')
 
-iters = [x for x in f['string'].keys() if 'iter_' in x]
-iiter = max(iters)
-centers = f['string'][iiter]['centers'][:]
+centers = f['strings'][-1,...]
+f.close()
+
 offset = np.zeros_like(centers)
 offset[:,1] = 1.0
 cen_rep = np.r_[centers + offset, centers, centers - offset]
 
 # Get coordinates
-iters = [x for x in f['pcoord'].keys() if 'iter_' in x]
+f = h5py.File(pcoord_h5, 'r')
+iters = [x for x in f['iterations'].keys() if 'iter_' in x]
 crd = []
 for iiter in iters[-10:]:
-    crd.append(f['pcoord'][iiter]['pcoord'][:])
+    crd.append(f['iterations'][iiter][:])
 
 crd = np.vstack(crd)
 assignments = np.empty((crd.shape[0],))
