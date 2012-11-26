@@ -31,13 +31,14 @@ def genrandint():
 
 class SimpleLangevinPropagator(WESTPropagator):
 
-    def __init__(self, system=None):
-        super(SimpleLangevinPropagator, self).__init__()
-        runtime_config = west.rc.config
-        self.ndim = runtime_config.get_int('simplelangevin.ndim', 2)
-        self.nsteps = runtime_config.get_int('simplelangevin.blocks_per_iteration', 2)
-        self.nsubsteps = runtime_config.get_int('simplelangevin.steps_per_block')
-        self.beta = runtime_config.get_float('simplelangevin.beta')
+    def __init__(self, rc=None):
+        super(SimpleLangevinPropagator, self).__init__(rc)
+
+        rc = self.rc.config['west','simplelangevin']
+        self.ndim = rc.get('ndim', 2)
+        self.nsteps = rc.get('blocks_per_iteration', 2)
+        self.nsubsteps = rc.get('steps_per_block')
+        self.beta = rc.get('beta')
 
         ff = ForceFields.Dickson2dRingForce()
         MASS = 1.0
@@ -95,16 +96,13 @@ class SimpleLangevinPropagator(WESTPropagator):
 
 class System(WESTSystem):
 
-    def __init__(self):
-        super(System, self).__init__()
-
     def initialize(self):
-        runtime_config = west.rc.config
+        rc = self.rc.config['west','system']
         self.pcoord_ndim = 3
         self.pcoord_len = 2
         self.pcoord_dtype = pcoord_dtype
-        self.target_count = runtime_config.get_int('system.target_count')
-        self.nbins = runtime_config.get_int('system.nbins')
+        self.target_count = rc.get('target_count')
+        self.nbins = rc.get('nbins')
 
         slen = self.nbins // 2
         x = np.linspace(-3.0, 3.0, slen)

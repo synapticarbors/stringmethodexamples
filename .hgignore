@@ -13,6 +13,8 @@ syntax: glob
 *.eps
 *.log
 *.sh
+*_bak
+*.bak
 
 syntax: regexp
 \.[0-9]+$

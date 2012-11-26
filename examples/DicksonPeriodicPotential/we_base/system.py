@@ -32,15 +32,15 @@ def genrandint():
 
 
 class SimpleLangevinPropagator(WESTPropagator):
-    def __init__(self, system=None):
-        super(SimpleLangevinPropagator,self).__init__()
 
-        # Process configuration file information
-        runtime_config = west.rc.config
-        self.ndim = runtime_config.get_int('simplelangevin.ndim',2)
-        self.nsteps = runtime_config.get_int('simplelangevin.blocks_per_iteration',2)
-        self.nsubsteps = runtime_config.get_int('simplelangevin.steps_per_block')
-        self.alpha = runtime_config.get_float('simplelangevin.alpha')
+    def __init__(self, rc=None):
+        super(SimpleLangevinPropagator, self).__init__(rc)
+
+        rc = self.rc.config['west', 'simplelangevin']
+        self.ndim = rc.get('ndim', 2)
+        self.nsteps = rc.get('blocks_per_iteration', 2)
+        self.nsubsteps = rc.get('steps_per_block')
+        self.alpha = rc.get('alpha')
 
         ff = ForceFields.Dickson2dPeriodicForce_revised(self.alpha)
 
@@ -82,7 +82,7 @@ class SimpleLangevinPropagator(WESTPropagator):
         return segments
 
 
-def dfunc_orig(p,centers):
+def dfunc_orig(p, centers):
     isperiodic = np.array([0,1],dtype=np.int)
     boxsize = np.array([1.0e8,1.0])
 
@@ -96,7 +96,7 @@ def dfunc_orig(p,centers):
     return np.sqrt(np.sum((pp-centers)**2,axis=1))
 
 
-def average_position(self,n_iter):
+def average_position(self, n_iter):
 
     isperiodic = np.array([0,1],dtype=np.int)
     boxsize = np.array([1.0e8,1.0])
@@ -149,18 +149,16 @@ def average_position(self,n_iter):
 
 
 class System(WESTSystem):
-    def __init__(self):
-        super(System, self).__init__()
 
     def initialize(self):
-        runtime_config = west.rc.config
+        rc = self.rc.config['west', 'system']
 
         # pcoord parameters
         self.pcoord_ndim = 2
         self.pcoord_len = 2
         self.pcoord_dtype = pcoord_dtype
-        self.target_count = runtime_config.get_int('system.target_count')
-        self.nbins = runtime_config.get_int('system.nbins')
+        self.target_count = rc.get('target_count')
+        self.nbins = rc.get('nbins')
 
         y = np.linspace(0.05,0.95,self.nbins)
         centers = np.zeros((self.nbins,self.pcoord_ndim),dtype=self.pcoord_dtype)
