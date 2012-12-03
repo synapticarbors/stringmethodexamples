@@ -97,7 +97,9 @@ class SimpleLangevinPropagator(WESTPropagator):
 class System(WESTSystem):
 
     def initialize(self):
-        rc = self.rc.config['west','system']
+
+        rc = self.rc.config['west', 'system']
+
         self.pcoord_ndim = 3
         self.pcoord_len = 2
         self.pcoord_dtype = pcoord_dtype
