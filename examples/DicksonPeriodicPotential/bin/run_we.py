@@ -83,8 +83,10 @@ def run_job(kwargs):
                 fout.write(line)
 
         os.system('chmod u+x {}'.format(sname))
-        print('Running {}'.format(sname))
-        os.system('{}'.format(sname))
+        
+        if not args.norun:
+            print('Running {}'.format(sname))
+            os.system('{}'.format(sname))
 
 
 if __name__ == '__main__':
@@ -98,7 +100,9 @@ if __name__ == '__main__':
                         help='number of cores to use')
     parser.add_argument('--sid_offset', dest='sid_offset', type=int, default=0,
                         help='offset for numbering simulations')
-
+    parser.add_argument('--no-run', dest='norun', default=False, action='store_true',
+                        help='Only setup simulations but do not run them')
+    
     args = parser.parse_args()
 
     # Setup worker pool

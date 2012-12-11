@@ -4,7 +4,8 @@ import yaml
 import argparse
 import subprocess
 
-basedir = os.getcwd()
+file_dir = os.path.dirname(os.path.abspath(__file__))
+basedir = os.path.split(file_dir)[0]
 
 script_template = """
 #!/bin/bash
@@ -100,8 +101,9 @@ def run_job(kwargs):
                 fout.write(line)
 
         os.system('chmod u+x {}'.format(sname))
-        print('Running {}'.format(sname))
-        subprocess.check_call('{}'.format(sname), shell=True, stderr=subprocess.STDOUT,)
+        if not args.norun:
+            print('Running {}'.format(sname))
+            subprocess.check_call('{}'.format(sname), shell=True, stderr=subprocess.STDOUT,)
 
 if __name__ == '__main__':
 
@@ -111,8 +113,10 @@ if __name__ == '__main__':
     parser.add_argument('-p', dest='protocols', nargs='*', help='protocols to run; by default run all')
     parser.add_argument('-w', dest='nworkers', type=int, default=multiprocessing.cpu_count(), 
                                 help='number of cores to use')
-    parser.add_argument('--profile', dest='profile', action='store_true', default=False, help='Profile code')
     parser.add_argument('--timeout', dest='timeout', type=int, default=60, help='timeout when running with zmq work manager')
+    parser.add_argument('--profile', dest='profile', action='store_true', default=False, help='Profile code')
+    parser.add_argument('--no-run', dest='norun', default=False, action='store_true', 
+                                help='Only setup simulations but do not run them')
 
     args = parser.parse_args()
 

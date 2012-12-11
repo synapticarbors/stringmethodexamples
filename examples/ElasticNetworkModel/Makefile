@@ -13,6 +13,7 @@ setup:
 	python bin/generate_data.py
 	ln -s $(PYLANG_TARGET)/ElasticNetwork.so we_base/ElasticNetwork.so
 	ln -s $(PYQCP_TARGET)/pyqcprot.so we_base/pyqcprot.so
+	ln -s $(PYQCP_TARGET)/pyqcprot.so analysis/pyqcprot.so
 	ln -s $(CWD_TARGET)/data/data.npz we_base/data.npz
 	touch we_base/env.sh
 	echo 'export WEST_ROOT=$(W_ROOT)' >> we_base/env.sh

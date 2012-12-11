@@ -21,7 +21,7 @@ setup:
 	echo 'export WM_WORK_MANAGER=serial' >> we_base/env.sh
 
 clean:
-	rm -f we_base/env.sh we_base/*.so bruteforce_base/*.so analysis/*.so generate_figures/*.so
+	rm -f we_base/env.sh we_base/*.so bruteforce_base/*.so analysis/*.so generate_figures/*.so src/*.so
 
 .PHONY: all clean setup 
 
