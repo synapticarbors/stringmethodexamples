@@ -56,6 +56,15 @@ the input files for WESTPA. We provide several helper scripts in the ``bin`` dir
 the simulations and run the analysis tools. Scripts to generate the figures from the manuscript can be found in 
 the ``generate_figures`` directory. Each individual system contains its own ``README`` file with specific instructions.
 
+Documentation
+=============
+
+Documentation is hosted at https://stringmethodexamples.readthedocs.org or can be built from source::
+
+    $ cd doc
+    $ make html (or in a pdf format using `make latexpdf`)
+
+
 Support
 =======
 
