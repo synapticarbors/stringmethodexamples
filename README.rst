@@ -5,7 +5,8 @@ Overview
 This project contains a number of examples illustrating the Weighted Ensemble-based string method, and
 the code used to in the publication:
 
-J.L. Adelman, M. Grabe. ”Simulating rare events using a Weighted Ensemble-based string method” *in revision*
+J.L. Adelman, M. Grabe. ”Simulating rare events using a Weighted Ensemble-based string method” J. Chem. Phys. 138, 044105 (2013)
+`DOI:10.1063/1.4773892`__ 
 
 
 Dependencies
@@ -88,3 +89,6 @@ please use the `Bitbucket issue tracker`_.
 .. OTHER LINKS
 
 .. _`yaml`: http://pyyaml.org/wiki/PyYAMLDocumentation
+
+.. CITATION
+__ http://dx.doi.org/10.1063/1.4773892

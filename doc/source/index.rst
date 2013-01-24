@@ -6,7 +6,11 @@
 Weighted Ensemble-based string method
 =====================================
 
+This project contains a number of examples illustrating the Weighted Ensemble-based string method, and
+the code used in:
 
+J.L. Adelman, M. Grabe. ”Simulating rare events using a Weighted Ensemble-based string method” J. Chem. Phys. 138, 044105 (2013)
+`DOI:10.1063/1.4773892`__ 
 
 WESTPA String Method plugin
 ---------------------------
@@ -28,3 +32,4 @@ Example Systems
     examples/eln
 
 
+__ http://dx.doi.org/10.1063/1.4773892
