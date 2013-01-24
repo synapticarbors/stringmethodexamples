@@ -10,7 +10,7 @@ This project contains a number of examples illustrating the Weighted Ensemble-ba
 the code used in:
 
 J.L. Adelman, M. Grabe. ”Simulating rare events using a Weighted Ensemble-based string method” J. Chem. Phys. 138, 044105 (2013)
-`DOI:10.1063/1.4773892`__ 
+`DOI:10.1063/1.4773892`__ [:doc:`PDF <pub>`]
 
 WESTPA String Method plugin
 ---------------------------
