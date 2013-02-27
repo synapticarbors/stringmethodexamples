@@ -44,7 +44,7 @@ Setting name (default value)                                            What doe
 =====================================================================   =====================================================================
 
 For the parameters of the plugin listed above, it is often convenient to define any custom methods within the ``system.py`` file as is shown in 
-example.
+the example.
 
 String Method parameters
 ------------------------
@@ -74,8 +74,6 @@ The parameters available via the ``DefaultStringMethod`` are
 =====================================================================   =====================================================================
 Parameter name (default value)                                            What does it do?
 =====================================================================   =====================================================================
-``centers``                                                             A numpy array of size (number of total centers, pcoord dim) that stores
-                                                                        the positions of all of the string images.
 ``slen``                                                                An iterable containing the number of centers in each string.
 ``slabels`` (``None``)                                                  A list containing the relative positions in each string of any state label
                                                                         progress coordinates if present. These progress coordinates will be ignored in the
@@ -92,6 +90,25 @@ Parameter name (default value)                                            What d
 ``fourier_maxiters`` (``100``)                                          Maximum number of iterations of fourier fitting procedure
 ``fourier_tol`` (``1.0E-6``)                                            Tolerance for ending fourier fitting
 =====================================================================   =====================================================================
+
+If the ``dfunc`` method requires additional positional or keyword arguments, the plugin will take them from ``system.dfargs`` and 
+``system.dfkwargs`` respectively when updating the ``BinMapper``. For example, if the ``dfunc`` method required a set of weights 
+to calculate a weighted RMSD and a boolean flag parameter, with the call signature ``dfunc(p, centers, weights, flag=False)``, 
+the system initialization might look like::
+
+    class System(WESTSystem):
+
+        def initialize(self):
+
+            ...
+            weights = ... # Define weight array
+            df_flag = True
+
+            self.dfargs = (weights, )
+            self.dfkwargs = {'flag': df_flag}
+            self.bin_mapper = VoronoiBinMapper(dfunc, centers, dfargs=self.dfargs, dfkwargs=self.dfkwargs)
+
+
 .. LINKS
 
 .. _`WESTPA`: http://chong.chem.pitt.edu/WESTPA
