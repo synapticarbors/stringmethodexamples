@@ -7,7 +7,7 @@ import numpy as np
 import west
 from west.propagators import WESTPropagator
 from west import Segment, WESTSystem
-from west.binning import VoronoiBinMapper
+from westpa.binning import VoronoiBinMapper
 
 import cIntegratorSimple
 import ForceFields

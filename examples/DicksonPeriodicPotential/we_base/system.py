@@ -8,7 +8,7 @@ import scipy
 import west
 from west.propagators import WESTPropagator
 from west import Segment, WESTSystem
-from west.binning import VoronoiBinMapper
+from westpa.binning import VoronoiBinMapper
 from westext.stringmethod import DefaultStringMethod
 from westext.stringmethod.fourier_fitting import FourierFit
 
