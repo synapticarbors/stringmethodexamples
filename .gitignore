@@ -1,4 +1,3 @@
-syntax: glob
 .project
 .pydevproject
 *.pyc
@@ -18,12 +17,11 @@ syntax: glob
 *.npz
 *.npy
 
-syntax: regexp
-\.[0-9]+$
+.[0-9]+
 
 build/
 analysis_old/
-we_[0-9]\.[0-9]/
+we_[0-9].[0-9]/
 we_common/
 we_rare/
 bruteforce_common/
