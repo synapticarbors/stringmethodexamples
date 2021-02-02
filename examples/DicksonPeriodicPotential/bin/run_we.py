@@ -1,7 +1,9 @@
-import multiprocessing
-import os, sys
-import yaml
 import argparse
+import multiprocessing
+import os
+import sys
+
+import yaml
 
 basedir = os.getcwd()
 
@@ -14,25 +16,23 @@ export WEST_SIM_ROOT={rundir}
 
 {env_variables}
 
-echo west_pythonpath: $WEST_PYTHONPATH
 echo west_sim_root: $WEST_SIM_ROOT
-echo west_root: $WEST_ROOT
 
 BSTATE_ARGS="--bstate initA,1.0"
 
 if [ ! -f west.h5 ];
 then
-    $WEST_ROOT/bin/w_init -r we_{sim_name}.cfg $BSTATE_ARGS > sim_{sim_name}_init.log &
+    w_init -r we_{sim_name}.cfg $BSTATE_ARGS > sim_{sim_name}_init.log &
     wait
 fi
 
-$WEST_ROOT/bin/w_run -r we_{sim_name}.cfg --verbose > sim_{sim_name}.log &
+w_run -r we_{sim_name}.cfg --verbose > sim_{sim_name}.log &
 wait
 """
 
 
 def build_west_cfg(config_data, protocol):
-    wd = {k:config_data[k] for k in  ['alpha','nbins','target_count','tau','propagator_block_size','adjust_counts']}
+    wd = {k: config_data[k] for k in  ['alpha','nbins','target_count','tau','propagator_block_size','adjust_counts']}
     wd['max_iterations'] = protocol['max_iterations']
 
     # string method parameters
@@ -74,7 +74,7 @@ def run_job(kwargs):
 
         # Setup west config script
         wcfg_dict = build_west_cfg(config_data,p)
-        print wcfg_dict
+        print(wcfg_dict)
         with open('we_base/we_base.cfg','r') as fin, open(os.path.join(rundir,'we_{}.cfg'.format(p['name'])),'w') as fout:
             we_cfg_template = fin.read()
             wcfg = we_cfg_template.format(**wcfg_dict)
@@ -83,7 +83,7 @@ def run_job(kwargs):
                 fout.write(line)
 
         os.system('chmod u+x {}'.format(sname))
-        
+
         if not args.norun:
             print('Running {}'.format(sname))
             os.system('{}'.format(sname))
@@ -96,13 +96,13 @@ if __name__ == '__main__':
     parser.add_argument('-c', dest='config_file', required=True, nargs='+',help='yaml config file name')
     parser.add_argument('-n', dest='name', nargs='*', required=True,help='simulation name to run')
     parser.add_argument('-p', dest='protocols', nargs='*', help='protocols to run; by default run all')
-    parser.add_argument('-w', dest='nworkers', type=int, default=multiprocessing.cpu_count(), 
+    parser.add_argument('-w', dest='nworkers', type=int, default=multiprocessing.cpu_count(),
                         help='number of cores to use')
     parser.add_argument('--sid_offset', dest='sid_offset', type=int, default=0,
                         help='offset for numbering simulations')
     parser.add_argument('--no-run', dest='norun', default=False, action='store_true',
                         help='Only setup simulations but do not run them')
-    
+
     args = parser.parse_args()
 
     # Setup worker pool
@@ -114,7 +114,7 @@ if __name__ == '__main__':
 
     config_data = []
     for cf in args.config_file:
-        with open(cf,'r') as f:
+        with open(cf, 'r') as f:
             config_data.extend([grp for grp in yaml.load_all(f)])
 
     # Remove simulations not in args.name
@@ -129,7 +129,7 @@ if __name__ == '__main__':
         sys.exit(1)
 
     for grp in config_data:
-        for si in xrange(args.sid_offset, args.nsims + args.sid_offset):
+        for si in range(args.sid_offset, args.nsims + args.sid_offset):
             dict_in = {}
             dict_in['rundir'] = os.path.join(basedir,grp['name'],'{}'.format(si))
             dict_in['config_data'] = grp

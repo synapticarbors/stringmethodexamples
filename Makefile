@@ -1,6 +1,6 @@
 all: shared examples
 
-examples: check-env DicksonRingPotential DicksonPeriodicPotential ElasticNetworkModel
+examples: DicksonRingPotential DicksonPeriodicPotential ElasticNetworkModel
 
 shared:
 	cd shared/pylangevin-integrator && python setup.py build_ext --inplace
@@ -24,7 +24,4 @@ clean:
 	$(MAKE) -C examples/DicksonPeriodicPotential clean
 	$(MAKE) -C examples/ElasticNetworkModel clean
 
-check-env:
-	@if [ -z "$${WEST_ROOT}" ]; then echo "The env variable WEST_ROOT must be specified"  && exit 1; fi
-
-.PHONY: examples shared check-env
+.PHONY: examples shared

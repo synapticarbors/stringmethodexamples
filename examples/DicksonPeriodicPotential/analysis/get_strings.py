@@ -1,35 +1,36 @@
-import numpy as np
-import h5py
 import argparse
-import sys
 import os
+import sys
 
-import west
+import h5py
+import numpy as np
+
+import westpa
 
 # h5py storage types
 vstr_dtype = h5py.new_vlen(str)
 idtype = np.dtype([('iter_name', vstr_dtype), ('string_index', np.int32)])
 
-print '-----------------------'
-print os.path.basename(__file__)
-print '-----------------------'
+print('-----------------------')
+print(os.path.basename(__file__))
+print('-----------------------')
 env = os.environ
 for k in env:
     if 'WEST' in k:
-        print k, env[k]
+        print(k, env[k])
 
 
 parser = argparse.ArgumentParser('get_strings', description='''\
         Retrieve strings from west.h5 file and write them to new file
         ''')
 
-west.rc.add_args(parser)
+westpa.rc.add_args(parser)
 parser.add_argument('-o', dest='h5out', help='name of output file')
 
 args = parser.parse_args()
-west.rc.process_args(args)
+westpa.rc.process_args(args)
 
-data_manager = west.rc.get_data_manager()
+data_manager = westpa.rc.get_data_manager()
 data_manager.open_backing(mode='r')
 
 h5out = h5py.File(args.h5out, 'w')
@@ -65,19 +66,20 @@ iter_ds = h5out.require_dataset('iterations', shape=(n_iters,), dtype=idtype)
 
 for iiter, iter_name in enumerate(iterations):
     if iiter % 100 == 0:
-        print 'Processing {} of {}'.format(iiter, n_iters)
+        print('Processing {} of {}'.format(iiter, n_iters))
         h5out.flush()
 
     try:
         iter_group = data_manager.we_h5file['iterations'][iter_name]
         if 'binhash' in iter_group.attrs:
-            binhash = iter_group.attrs['binhash']
+            binhash = iter_group.attrs['binhash'].encode()
             string_index = data_manager.find_bin_mapper(binhash)
         else:
             string_index = -1
-    except:
-        print 'Error in processing iteration {}'.format(iter_name)
-        print sys.exc_info()
+    except Exception:
+        raise
+        print('Error in processing iteration {}'.format(iter_name))
+        print(sys.exc_info())
         break
 
     iter_ds[iiter] = (iter_name, string_index)

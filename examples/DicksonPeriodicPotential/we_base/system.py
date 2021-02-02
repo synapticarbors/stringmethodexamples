@@ -1,22 +1,22 @@
-from __future__ import division, print_function; __metaclass__ = type
-
-import time
+import logging
 import os
+import time
+
 import numpy as np
 import scipy
 
-import west
-from west.propagators import WESTPropagator
-from west import Segment, WESTSystem
-from westpa.binning import VoronoiBinMapper
-from westext.stringmethod import DefaultStringMethod
-from westext.stringmethod.fourier_fitting import FourierFit
+from westpa.core.propagators import WESTPropagator
+from westpa.core.segment import Segment
+from westpa.core.systems import WESTSystem
+from westpa.core.binning import VoronoiBinMapper
+from westpa.westext.stringmethod import DefaultStringMethod
+from westpa.westext.stringmethod.fourier_fitting import FourierFit
 
 import cIntegratorSimple
 import ForceFields
+
 from utils import dfunc as dfunc
 
-import logging
 log = logging.getLogger(__name__)
 log.debug('loading module %r' % __name__)
 
@@ -27,7 +27,8 @@ def genrandint():
     'Generates a random integer between 0 and (2^32)-1'
     x = 0
     for i in range(4):
-        x = (x << 8)+ord(os.urandom(1))
+        x = (x << 8) + ord(os.urandom(1))
+
     return x
 
 
@@ -46,7 +47,7 @@ class SimpleLangevinPropagator(WESTPropagator):
 
         MASS = 1.0
         XI = 1.5
-        BETA = 4.0 
+        BETA = 4.0
         NDIMS = 2
         DT = 0.002
         ISPERIODIC = np.array([0,1],dtype=np.int)
@@ -70,8 +71,8 @@ class SimpleLangevinPropagator(WESTPropagator):
             new_pcoords[0,:] = segment.pcoord[0,:]
 
             x = new_pcoords[0,:].copy()
-            
-            for istep in xrange(1,self.nsteps):
+
+            for istep in range(1,self.nsteps):
                 self.integrator.step(x,self.nsubsteps)
                 new_pcoords[istep,:] = x
 
@@ -88,7 +89,7 @@ def dfunc_orig(p, centers):
 
     pp = p - centers
 
-    for k in xrange(len(isperiodic)):
+    for k in range(len(isperiodic)):
         if isperiodic[k] == 1:
             pp[:,k] -= np.rint(pp[:,k]/boxsize[k])*boxsize[k]
 
@@ -110,7 +111,7 @@ def average_position(self, n_iter):
     start_iter = max(n_iter - min(self.windowsize, n_iter), 1)
     stop_iter = n_iter + 1
 
-    for n in xrange(start_iter, stop_iter):
+    for n in range(start_iter, stop_iter):
         with self.data_manager.lock:
             iter_group = self.data_manager.get_iter_group(n)
             seg_index = iter_group['seg_index'][...]
@@ -129,7 +130,7 @@ def average_position(self, n_iter):
                 # Wrap coordinates into the same image as the current center
                 xref = self.strings.centers[indx,:]
 
-                for k in xrange(ndim):
+                for k in range(ndim):
                     if isperiodic[k] == 1:
                         xoffset = bpc[:,k] - xref[k]
                         xoffset -= np.rint(xoffset/boxsize[k])*boxsize[k]
@@ -271,16 +272,16 @@ class PeriodicLinkedStringMethod(DefaultStringMethod):
                     x[0,:] = centers[0,:]
                     notocc[0] = False
                 if notocc[-1]:
-                    x[-1,:] = centers[-1,:] 
+                    x[-1,:] = centers[-1,:]
                     notocc[-1] = False
 
                 # interpolate values for unoccupied bins
                 if self._SCIPY_FLAG:
-                    for k in xrange(self._ndim_take):
+                    for k in range(self._ndim_take):
                         f = scipy.interpolate.interp1d(cfunc(~notocc),x[~notocc,k],kind='linear')
                         x[notocc,k] = f(cfunc(notocc))
                 else:
-                    for k in xrange(self._ndim_take):
+                    for k in range(self._ndim_take):
                         x[notocc,k] = np.interp(cfunc(notocc),cfunc(~notocc),x[~notocc,k])
 
             if self._fixed_ends:
@@ -296,7 +297,7 @@ class PeriodicLinkedStringMethod(DefaultStringMethod):
             b_aug[1:-1,:] = b
 
             # determine sign conventions to fill in b_aug
-            for k in xrange(self._ndim_take):
+            for k in range(self._ndim_take):
                 if self._isperiodic[k]:
                     dx = b[0,k] - b[-1,k]
                     s = np.rint(dx/self._boxsize[k])
@@ -304,10 +305,10 @@ class PeriodicLinkedStringMethod(DefaultStringMethod):
                     b_aug[-1,k] = -s*self._boxsize[k]
 
             if False: #self._SCIPY_FLAG:
-                for k in xrange(self._ndim_take):
+                for k in range(self._ndim_take):
                     psi_aug[:,k] = scipy.linalg.solve_banded((1,1),self._A[N],b_aug[:,k])
             else:
-                for k in xrange(self._ndim_take):
+                for k in range(self._ndim_take):
                     psi_aug[:,k] = np.linalg.solve(self._A[N],b_aug[:,k])
 
             # smooth using fourier method
@@ -325,15 +326,15 @@ class PeriodicLinkedStringMethod(DefaultStringMethod):
             g2 = np.linspace(0,1,N+2)
 
             if self._SCIPY_FLAG:
-                for k in xrange(self._ndim_take):
+                for k in range(self._ndim_take):
                     f = scipy.interpolate.interp1d(L,psi_aug[:,k],kind='linear')
                     psi_aug[:,k] = f(g2)
             else:
-                for k in xrange(self._ndim_take):
+                for k in range(self._ndim_take):
                     psi_aug[:,k] = np.interp(g2,L,psi_aug[:,k])
 
             psi_new = psi_aug[1:-1,:]
-            for k in xrange(self._ndim_take):
+            for k in range(self._ndim_take):
                 if self._isperiodic[k]:
                     psi_new[:,k] -= np.floor(psi_new[:,k]/self._boxsize[k])*self._boxsize[k]
                     sort_indx = np.argsort(psi_new[:,k])

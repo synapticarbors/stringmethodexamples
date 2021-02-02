@@ -1,7 +1,9 @@
-import multiprocessing
-import os, sys
-import yaml
 import argparse
+import multiprocessing
+import os
+import sys
+
+import yaml
 
 basedir = os.getcwd()
 
@@ -15,13 +17,14 @@ wait
 
 """
 
+
 def build_cfg_dict(config_data):
     wd = {}
     wd['alpha'] = float(config_data['alpha'])
     wd['num_blocks'] = int(float(config_data['num_blocks']))
     wd['steps_per_block'] = int(config_data['steps_per_block'])
     wd['blocks_per_dump'] = int(config_data['blocks_per_dump'])
-    
+
     return wd
 
 
@@ -37,7 +40,7 @@ def run_job(kwargs):
     # Setup external run script
     sname = os.path.join(rundir,'run_{}_{}.sh'.format(sim_id,config_data['name']))
     script = script_template.format(rundir=rundir,sid=sim_id,**cfg_dict)
-    
+
     with open(sname,'w') as f:
         for line in script:
             f.write(line)
@@ -53,7 +56,7 @@ if __name__ == '__main__':
     parser.add_argument('-s', dest='nsims', type=int, default=10, help='number of simulations to run')
     parser.add_argument('-c', dest='config_file', required=True, nargs='+',help='yaml config file name')
     parser.add_argument('-n', dest='name', nargs='*', required=True,help='simulation name to run')
-    parser.add_argument('-w', dest='nworkers', type=int, default=multiprocessing.cpu_count(), 
+    parser.add_argument('-w', dest='nworkers', type=int, default=multiprocessing.cpu_count(),
                                 help='number of cores to use')
     parser.add_argument('--sid_offset', dest='sid_offset', type=int, default=0,
                                 help='offset for numbering simulations')
@@ -79,13 +82,13 @@ if __name__ == '__main__':
 
     if args.name is not None:
         config_data[:] = [grp for grp in config_data if grp['name'] in args.name]
-    
+
     if len(config_data) == 0:
         print('ERROR: No simulations to run')
         sys.exit(1)
 
     for grp in config_data:
-        for si in xrange(args.sid_offset, args.nsims + args.sid_offset):
+        for si in range(args.sid_offset, args.nsims + args.sid_offset):
             dict_in = {}
             dict_in['rundir'] = os.path.join(basedir,grp['name'])
             dict_in['config_data'] = grp
@@ -99,6 +102,6 @@ if __name__ == '__main__':
             templatedir = os.path.join(basedir,'bruteforce_base')
             os.system('cp -RP {} {}'.format(templatedir,rundir))
             os.makedirs(os.path.join(rundir,'analysis'))
-    
-    print inputs
+
+    print(inputs)
     pool.map(run_job, inputs,chunksize=1)

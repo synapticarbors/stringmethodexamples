@@ -1,10 +1,12 @@
-import numpy as np
-import cIntegratorSimple
-import ForceFields
+import argparse
+import logging
 import os
 import time
-import logging
-import argparse
+
+import numpy as np
+
+import cIntegratorSimple
+import ForceFields
 
 
 def genrandint():
@@ -16,7 +18,6 @@ def genrandint():
 
 
 def run(sid,alpha,NUM_BLOCKS,STEPS_PER_BLOCK,BLOCKS_PER_DUMP):
-
     print('Setting up logging')
     logging.basicConfig(filename='sim_{}.log'.format(sid),level=logging.DEBUG,filemode='w')
     logging.info('Sim ID: {}'.format(sid))
@@ -47,7 +48,7 @@ def run(sid,alpha,NUM_BLOCKS,STEPS_PER_BLOCK,BLOCKS_PER_DUMP):
     hist = np.empty((totblocks,len(bins)))
 
     print('Starting Simulation')
-    for dk in xrange(totblocks):
+    for dk in range(totblocks):
         t1 = time.time()
         ctemp = integrator.step_save(x,BLOCKS_PER_DUMP*STEPS_PER_BLOCK,STEPS_PER_BLOCK)
         x = ctemp[-1,:]

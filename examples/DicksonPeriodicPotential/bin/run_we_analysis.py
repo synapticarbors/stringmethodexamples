@@ -1,8 +1,9 @@
-import multiprocessing
-import os, sys
-import yaml
 import argparse
+import multiprocessing
+import os
+import sys
 import glob
+import yaml
 
 
 file_dir = os.path.dirname(os.path.abspath(__file__))
@@ -16,19 +17,19 @@ def run_job(kwargs):
     sim_root = os.path.join(grp_root, kwargs['sim_index'])
     cfg_file = os.path.join(sim_root, 'we_phase1.cfg')
 
-    print kwargs['config_data']['name']
+    print(kwargs['config_data']['name'])
 
     if kwargs['script'] != 'all':
         script = os.path.join(basedir, 'analysis', kwargs['script'])
         h5out_file = os.path.join(grp_root, 'analysis', kwargs['sim_index'], script.split('_')[-1] + '.h5')
-        os.system('cd {} && $WEST_ROOT/bin/west {}.py -r {} -o {}'.format(sim_root, script, cfg_file, h5out_file))
+        os.system('cd {} && python {}.py -r {} -o {}'.format(sim_root, script, cfg_file, h5out_file))
     else:
-        print 'Running all analysis scripts'
+        print('Running all analysis scripts')
         for s in scripts:
             if s != 'all':
                 sp = os.path.join(basedir, 'analysis', s)
                 h5out_file = os.path.join(grp_root, 'analysis', kwargs['sim_index'], sp.split('_')[-1] + '.h5')
-                os.system('cd {} && $WEST_ROOT/bin/west {}.py -r {} -o {}'.format(sim_root, sp, cfg_file, h5out_file))
+                os.system('cd {} && python {}.py -r {} -o {}'.format(sim_root, sp, cfg_file, h5out_file))
 
 
 if __name__ == '__main__':

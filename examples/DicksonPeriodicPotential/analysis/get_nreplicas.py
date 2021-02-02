@@ -1,31 +1,31 @@
-import numpy as np
-import h5py
 import argparse
-import sys
 import os
 
-import west
+import h5py
+import numpy as np
 
-print '-----------------------'
-print os.path.basename(__file__)
-print '-----------------------'
+import westpa
+
+print('-----------------------')
+print(os.path.basename(__file__))
+print('-----------------------')
 env = os.environ
 for k in env:
     if 'WEST' in k:
-        print k, env[k]
+        print(k, env[k])
 
 
 parser = argparse.ArgumentParser('get_strings', description='''\
         Retrieve number of replicas from west.h5 file and write them to new file
         ''')
 
-west.rc.add_args(parser)
+westpa.rc.add_args(parser)
 parser.add_argument('-o', dest='h5out', help='name of output file')
 
 args = parser.parse_args()
-west.rc.process_args(args)
+westpa.rc.process_args(args)
 
-data_manager = west.rc.get_data_manager()
+data_manager = westpa.rc.get_data_manager()
 data_manager.open_backing(mode='r')
 
 h5out = h5py.File(args.h5out, 'w')

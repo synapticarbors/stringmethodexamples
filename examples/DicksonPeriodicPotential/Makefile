@@ -1,23 +1,16 @@
-W_ROOT := $(shell echo $$WEST_ROOT)
-PYLANG_TARGET := $(shell readlink -f ../../shared/pylangevin-integrator)
-SRC_TARGET := $(shell readlink -f src)
+PYLANG_TARGET := $(shell python -c 'import os; import sys; print(os.path.realpath("../../shared/pylangevin-integrator"))')
+SRC_TARGET := $(shell python -c 'import os; import sys; print(os.path.realpath("src"))')
 
 all: clean setup
 
 setup: 
-	@if [ -z "$${WEST_ROOT}" ]; then echo "The env variable WEST_ROOT must be specified"  && exit 1; fi
 	cd src && python setup.py build_ext --inplace
-	ln -s $(PYLANG_TARGET)/ForceFields.so we_base/ForceFields.so
-	ln -s $(PYLANG_TARGET)/ForceFields.so bruteforce_base/ForceFields.so
-	ln -s $(PYLANG_TARGET)/cIntegratorSimple.so we_base/cIntegratorSimple.so
-	ln -s $(PYLANG_TARGET)/cIntegratorSimple.so bruteforce_base/cIntegratorSimple.so
-	ln -s $(SRC_TARGET)/utils.so we_base/utils.so
-	ln -s $(SRC_TARGET)/utils.so analysis/utils.so
-	ln -s $(SRC_TARGET)/utils.so generate_figures/utils.so
+	for file in $(PYLANG_TARGET)/*.so; do ln -s $${file} we_base/$$(basename -- $${file}); done
+	for file in $(PYLANG_TARGET)/*.so; do ln -s $${file} bruteforce_base/$$(basename -- $${file}); done
+	for file in $(SRC_TARGET)/*.so; do ln -s $${file} we_base/$$(basename -- $${file}); done
+	for file in $(SRC_TARGET)/*.so; do ln -s $${file} analysis/$$(basename -- $${file}); done
+	for file in $(SRC_TARGET)/*.so; do ln -s $${file} generate_figures/$$(basename -- $${file}); done
 	touch we_base/env.sh
-	echo 'export WEST_ROOT=$(W_ROOT)' >> we_base/env.sh
-	echo 'export WEST_PYTHONPATH=$${WEST_ROOT}/src:$${WEST_SIM_ROOT}' >> we_base/env.sh
-	echo 'export WEST_PYTHON=python' >> we_base/env.sh
 	echo 'export WM_WORK_MANAGER=serial' >> we_base/env.sh
 
 clean:

@@ -4,31 +4,31 @@ import argparse
 import sys
 import os
 
-import west
+import westpa
 
 pcoord_dtype = np.float32
 nbins = 100
 
-print '-----------------------'
-print os.path.basename(__file__)
-print '-----------------------'
+print('-----------------------')
+print(os.path.basename(__file__))
+print('-----------------------')
 env = os.environ
 for k in env:
     if 'WEST' in k:
-        print k, env[k]
+        print(k, env[k])
 
 
 parser = argparse.ArgumentParser('calculate_distribution', description='''\
         Calculate distribution statistics
         ''')
 
-west.rc.add_args(parser)
+westpa.rc.add_args(parser)
 parser.add_argument('-o', dest='h5out', help='name of output file')
 
 args = parser.parse_args()
-west.rc.process_args(args)
+westpa.rc.process_args(args)
 
-data_manager = west.rc.get_data_manager()
+data_manager = westpa.rc.get_data_manager()
 data_manager.open_backing(mode='r')
 
 h5out = h5py.File(args.h5out, 'a')
@@ -48,9 +48,9 @@ else:
     start_iter = 2
     h5out.attrs['last_completed_iter'] = 2
 
-for iiter in xrange(start_iter, n_iters):
+for iiter in range(start_iter, n_iters):
     if iiter % 1000 == 0:
-        print 'Processing {} of {}'.format(iiter, n_iters - 1)
+        print('Processing {} of {}'.format(iiter, n_iters - 1))
         h5out.flush()
 
     try:
@@ -65,9 +65,9 @@ for iiter in xrange(start_iter, n_iters):
         data_ds[iiter-2,:] = h
         h5out.attrs['last_completed_iter'] = iiter
 
-    except:
-        print 'Error in processing iteration: {}'.format(iiter)
-        print sys.exc_info()
+    except Exception:
+        print('Error in processing iteration: {}'.format(iiter))
+        print(sys.exc_info())
         break
 
 h5out.close()

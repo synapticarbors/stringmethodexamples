@@ -67,21 +67,21 @@ for sni,sname in enumerate(sims):
     # Target data
     target = np.zeros((nbins,))
 
-    for k in xrange(ntarget[sni]):
+    for k in range(ntarget[sni]):
         tk = np.load(fnames[k])
         target += np.sum(tk,axis=0)
 
     target /= np.sum(target)
     log_Pt = logfunc(target)
     nframes = tk.shape[0]
-    print '{} -- nframes: {} bf_dt: {}'.format(sname, nframes,bf_dt[sname])
+    print('{} -- nframes: {} bf_dt: {}'.format(sname, nframes,bf_dt[sname]))
     t = bf_dt[sname] * np.arange(nframes,dtype=np.int64)
-    print np.min(t), np.max(t)
-    
+    print(np.min(t), np.max(t))
+
     # Brute Force
     err = np.zeros((len(fnames)-ntarget[sni],len(t)))
     maxi = []
-    for ki,k in enumerate(xrange(ntarget[sni],len(fnames))):
+    for ki,k in enumerate(range(ntarget[sni],len(fnames))):
         P = np.cumsum(np.load(fnames[k]),axis=0)
         Psum = np.sum(P,axis=1)
         P /= Psum[:,np.newaxis]
@@ -90,10 +90,10 @@ for sni,sname in enumerate(sims):
         Ei = log_Pi - log_Pt[np.newaxis,:]
         ii = np.where(np.abs(log_Pi) == np.inf)
         maxi.append(np.max(ii[0]))
-    
+
         Ei[ii] = logfunc(1.0/T[sni]) - np.tile(log_Pt[np.newaxis,:],(Ei.shape[0],1))[ii]
         err[ki,:] = np.sqrt(np.mean(Ei**2,1))
-   
+
     ax[sname].loglog(t,np.mean(err,axis=0),color='black',ls=':',label='CONV')
     maxi = np.array(maxi)
     maxii = np.ceil(np.mean(maxi))
@@ -106,7 +106,7 @@ for sni,sname in enumerate(sims):
     for fn in fnames:
         h5file = h5py.File(fn,'r')
         d = h5file['data'][:]
-        
+
         data.append(d)
         data_shape.append(list(d.shape))
 
@@ -120,8 +120,8 @@ for sni,sname in enumerate(sims):
     tt = we_dt[sname]*np.arange(we_nframes-offset) + we_dt[sname]*offset
     maxi = []
 
-    for k in xrange(len(data)):
-        print 'WE {}'.format(k)
+    for k in range(len(data)):
+        print('WE {}'.format(k))
         hk = data[k][offset:,:]
         hk = np.cumsum(hk,0)
         hk_sum = np.sum(hk,1)
@@ -143,7 +143,7 @@ for sni,sname in enumerate(sims):
     maxi = np.array(maxi)
     maxii = np.ceil(np.mean(maxi))
     ax[sname].loglog([tt[maxii]],[np.mean(werr,axis=0)[maxii]],marker='o',ms=4,color='g',label='_nolegend_')
-    print 'we max inf time: %.3e %.3e %.3e' % (np.max(tt[maxi]),np.min(tt[maxi]), np.mean(tt[maxi]))
+    print('we max inf time: %.3e %.3e %.3e' % (np.max(tt[maxi]),np.min(tt[maxi]), np.mean(tt[maxi])))
 
     ax[sname].loglog(tt,np.mean(werr,0),'g',label='WE')
     ax[sname].set_xlabel('Time $({\delta}t)$')
